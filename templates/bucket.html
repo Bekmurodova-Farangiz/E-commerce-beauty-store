@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+  <h1>Your bucket <i class="fas fa-shopping-cart"></i></h1>
+  <p>Review the products in your bucket and proceed to purchase.</p>
+</div>
+
+{% if products|length == 0 %}
+  <p>Your bucket is empty.</p>
+{% else %}
+  <div class="grid">
+    {% for p in products %}
+      <div class="card">
+        <div class="product-top">
+          {% if p.image_filename %}
+            <img
+              src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}"
+              alt="{{ p.name }}"
+            >
+          {% else %}
+            <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
+          {% endif %}
+
+          <div>
+            <h3>{{ p.name }}</h3>
+            <p>{{ p.description }}</p>
+            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
+            {% if p.category %}
+              <div class="tag"><i class="fas fa-tag"></i> {{ p.category }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <form method="POST" action="{{ url_for('remove_from_bucket', product_id=p.id) }}">
+            <button class="icon-btn remove-btn" type="submit" title="Remove from bucket"><i class="fas fa-times"></i></button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="section-title">
+    <h2>Total</h2>
+    <small>€ {{ "%.2f"|format(total) }}</small>
+  </div>
+
+  <a class="btn primary" href="{{ url_for('purchase') }}">Proceed to purchase</a>
+{% endif %}
+
+{% endblock %}
+

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+  <h1>{% if product %}Edit{% else %}Add{% endif %} Product <i class="fas fa-pump-soap"></i></h1>
+  <p>Fill in product details: name, category, description, and price.</p>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  <label>Product name</label>
+  <input name="name" placeholder="e.g., HydraGlow Moisturizer"
+         value="{{ product.name if product else '' }}" required>
+
+  <label>Category</label>
+  <select name="category" required>
+    {% set current = product.category if product else '' %}
+    {% if categories %}
+      {% for c in categories %}
+        <option value="{{ c }}" {% if current==c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    {% else %}
+      {% for c in ['Cleanser','Serum','Moisturizer','Sunscreen','Mask','Toner'] %}
+        <option value="{{ c }}" {% if current==c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    {% endif %}
+  </select>
+  <small class="helper"><a href="{{ url_for('category_manage') }}">Manage categories</a></small>
+
+  <label>Product Image</label>
+  <input type="file" name="image" accept="image/*" style="padding: 8px;">
+
+  {% if product and product.image_filename %}
+    <input type="hidden" name="existing_image" value="{{ product.image_filename }}">
+    <small class="helper">Current image will be kept if you don’t upload a new one.</small>
+  {% endif %}
+
+
+  <label>Image URL</label>
+  <input name="image_url" placeholder="https://...jpg or .png"
+         value="{{ product.image_url if product else '' }}">
+  <small class="helper">Paste an image link (jpg/png/webp). You can use any public URL.</small>
+
+
+  <label>Description</label>
+  <textarea name="description" rows="4" placeholder="Short, clear product description...">{{ product.description if product else '' }}</textarea>
+
+  <label>Price (€)</label>
+  <input name="price" type="number" step="0.01" placeholder="e.g., 19.99"
+         value="{{ product.price if product else '' }}" required>
+
+  <button type="submit">Save</button>
+  <small class="helper">Tip: Keep descriptions short for a premium store look <i class="fas fa-star"></i></small>
+</form>
+
+{% endblock %}

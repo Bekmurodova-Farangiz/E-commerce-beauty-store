@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+  <h1>Search Products <i class="fas fa-search"></i></h1>
+  <p>Find the perfect skincare products for your routine.</p>
+</div>
+
+<div class="search-section">
+  <form method="GET" action="{{ url_for('search') }}" class="search-form">
+    <div class="search-input-group">
+      <div class="search-input-wrapper">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          name="q" 
+          placeholder="Search by name, description, or category..." 
+          value="{{ q or '' }}"
+          autofocus
+          class="search-input"
+        >
+      </div>
+      <button type="submit" class="btn primary search-btn">Search</button>
+    </div>
+    
+    <div class="filter-group">
+      <label for="category">Filter by Category:</label>
+      <select name="category" id="category" class="filter-select" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+{% if q or category %}
+  <div class="results-header">
+    <h2>
+      {% if products|length > 0 %}
+        Found {{ products|length }} result{{ 's' if products|length != 1 else '' }}
+      {% else %}
+        No results found
+      {% endif %}
+    </h2>
+    {% if q %}
+      <p class="search-query">Searching for: "<strong>{{ q }}</strong>"</p>
+    {% endif %}
+    {% if category %}
+      <p class="search-category">Category: <strong>{{ category }}</strong></p>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if category and not q %}
+  <div class="results-header">
+    <h2>
+      {% if products|length > 0 %}
+        {{ products|length }} product{{ 's' if products|length != 1 else '' }} in {{ category }}
+      {% else %}
+        No products found in {{ category }}
+      {% endif %}
+    </h2>
+    <p class="search-category">Category: <strong>{{ category }}</strong></p>
+  </div>
+{% endif %}
+
+{% if products|length == 0 and (q or category) %}
+  <div class="no-results">
+    <i class="fas fa-search"></i>
+    <p>No products match your search criteria.</p>
+    <a href="{{ url_for('search') }}" class="btn">Clear Search</a>
+  </div>
+{% elif products|length > 0 %}
+  <div class="grid">
+    {% for p in products %}
+      <div class="card">
+        <div class="product-top">
+          {% if p.image_filename %}
+            <img
+              src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}"
+              alt="{{ p.name }}"
+            >
+          {% else %}
+            <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
+          {% endif %}
+
+          <div>
+            <h3>{{ p.name }}</h3>
+            <p>{{ p.description }}</p>
+            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
+            {% if p.category %}
+              <div class="tag"><i class="fas fa-tag"></i> {{ p.category }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <form method="POST" action="{{ url_for('like_product', product_id=p.id) }}">
+            <button class="icon-btn" type="submit" title="Like"><i class="fas fa-heart"></i></button>
+          </form>
+          <form method="POST" action="{{ url_for('add_to_bucket', product_id=p.id) }}">
+            <button class="icon-btn" type="submit" title="Add to bucket"><i class="fas fa-shopping-cart"></i></button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="search-prompt">
+    <i class="fas fa-search"></i>
+    <p>Enter a search term above to find products.</p>
+  </div>
+{% endif %}
+
+{% endblock %}

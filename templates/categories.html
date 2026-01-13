@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="admin-header">
+  <div class="admin-header-content">
+    <div>
+      <h1>Manage Categories <i class="fas fa-tags"></i></h1>
+      <p>Add, edit, and delete product categories</p>
+    </div>
+    <a class="btn primary" href="{{ url_for('admin') }}">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="category-section">
+  <div class="category-form-card">
+    <h2><i class="fas fa-plus-circle"></i> Add New Category</h2>
+    <form method="POST" action="{{ url_for('category_add') }}" class="category-form">
+      <div class="form-group">
+        <label for="category_name">Category Name</label>
+        <input 
+          type="text" 
+          id="category_name" 
+          name="name" 
+          placeholder="e.g., Cleanser, Serum, Moisturizer"
+          required
+          class="category-input"
+        >
+      </div>
+      <button type="submit" class="btn primary">
+        <i class="fas fa-plus"></i> Add Category
+      </button>
+    </form>
+  </div>
+
+  <div class="categories-list">
+    <div class="categories-header">
+      <h2>Existing Categories</h2>
+      <span class="category-count">{{ categories|length }} categor{{ 'ies' if categories|length != 1 else 'y' }}</span>
+    </div>
+
+    {% if categories|length == 0 %}
+      <div class="category-empty">
+        <i class="fas fa-tags"></i>
+        <p>No categories yet. Add your first category above.</p>
+      </div>
+    {% else %}
+      <div class="category-grid">
+        {% for cat in categories %}
+          <div class="category-card">
+            <div class="category-card-content">
+              <h3>{{ cat.name }}</h3>
+              <p class="category-product-count">{{ cat.product_count }} product{{ 's' if cat.product_count != 1 else '' }}</p>
+            </div>
+            <div class="category-card-actions">
+              <a href="{{ url_for('category_edit', name=cat.name) }}" class="category-action-btn edit" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+              {% if cat.product_count == 0 %}
+                <form method="POST" action="{{ url_for('category_delete', name=cat.name) }}" class="category-delete-form">
+                  <button type="submit" class="category-action-btn delete" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              {% else %}
+                <span class="category-action-btn disabled" title="Cannot delete category with products">
+                  <i class="fas fa-lock"></i>
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

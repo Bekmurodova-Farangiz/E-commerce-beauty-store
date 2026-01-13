@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+  <h1>Purchase details 🧾</h1>
+  <p>Enter your details to complete the purchase of the products in your bucket.</p>
+</div>
+
+<h2>Order summary</h2>
+
+<div class="grid">
+  {% for p in products %}
+    <div class="card">
+      <div class="product-top">
+        {% if p.image_filename %}
+          <img
+            src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}"
+            alt="{{ p.name }}"
+          >
+        {% else %}
+          <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
+        {% endif %}
+
+        <div>
+          <h3>{{ p.name }}</h3>
+          <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="section-title">
+  <h2>Total</h2>
+  <small>€ {{ "%.2f"|format(total) }}</small>
+</div>
+
+<h2>Buyer information</h2>
+
+<form method="POST">
+  <label for="name">Full name</label>
+  <input id="name" name="name" required placeholder="Your full name">
+
+  <label for="email">Email</label>
+  <input id="email" name="email" type="email" required placeholder="you@example.com">
+
+  <label for="address">Shipping address</label>
+  <textarea id="address" name="address" rows="3" required placeholder="Street, city, country"></textarea>
+
+  <label for="notes">Order notes (optional)</label>
+  <textarea id="notes" name="notes" rows="3" placeholder="Any special instructions..."></textarea>
+
+  <button type="submit">Confirm purchase</button>
+</form>
+
+{% endblock %}
+

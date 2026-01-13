@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+  <h1>By Farangiz <i class="fas fa-pump-soap"></i> <i class="fas fa-star"></i></h1>
+  <p>Curated essentials: cleansers, serums, moisturizers, masks & SPF.</p>
+
+  <div class="badges">
+    <span class="badge"><i class="fas fa-star"></i> Bestseller Picks</span>
+    <span class="badge"><i class="fas fa-pump-soap"></i> Gentle formulas</span>
+    <span class="badge"><i class="fas fa-sun"></i> Daily SPF</span>
+    <span class="badge"><i class="fas fa-leaf"></i> Minimal routines</span>
+  </div>
+</div>
+
+<h2>Products</h2>
+
+{% if products|length == 0 %}
+  <p>No products available yet.</p>
+{% else %}
+  <div class="grid">
+    {% for p in products %}
+      <div class="card">
+        <div class="product-top">
+
+          {% if p.image_filename %}
+            <img
+              src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}"
+              alt="{{ p.name }}"
+            >
+          {% else %}
+            <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
+          {% endif %}
+
+          <div>
+            <h3>{{ p.name }}</h3>
+            <p>{{ p.description }}</p>
+            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
+            {% if p.category %}
+              <div class="tag"><i class="fas fa-tag"></i> {{ p.category }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <div class="card-actions">
+          <form method="POST" action="{{ url_for('like_product', product_id=p.id) }}">
+            <button class="icon-btn" type="submit" title="Like"><i class="fas fa-heart"></i></button>
+          </form>
+          <form method="POST" action="{{ url_for('add_to_bucket', product_id=p.id) }}">
+            <button class="icon-btn" type="submit" title="Add to bucket"><i class="fas fa-shopping-cart"></i></button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% endblock %}

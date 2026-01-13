@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="hero">
+  <h1>Liked items <i class="fas fa-heart"></i></h1>
+  <p>Products you’ve liked. You can move them to your bucket to purchase later.</p>
+</div>
+
+{% if products|length == 0 %}
+  <p>You haven’t liked any products yet.</p>
+{% else %}
+  <div class="grid">
+    {% for p in products %}
+      <div class="card">
+        <div class="product-top">
+          {% if p.image_filename %}
+            <img
+              src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}"
+              alt="{{ p.name }}"
+            >
+          {% else %}
+            <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
+          {% endif %}
+
+          <div>
+            <h3>{{ p.name }}</h3>
+            <p>{{ p.description }}</p>
+            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
+            {% if p.category %}
+              <div class="tag"><i class="fas fa-tag"></i> {{ p.category }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <form method="POST" action="{{ url_for('add_to_bucket', product_id=p.id) }}">
+            <button class="icon-btn" type="submit" title="Move to bucket"><i class="fas fa-shopping-cart"></i></button>
+          </form>
+          <form method="POST" action="{{ url_for('unlike_product', product_id=p.id) }}">
+            <button class="icon-btn remove-btn" type="submit" title="Remove from liked"><i class="fas fa-times"></i></button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% endblock %}
+

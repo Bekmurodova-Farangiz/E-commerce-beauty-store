@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="admin-header">
+  <div class="admin-header-content">
+    <div>
+      <h1>Edit Category <i class="fas fa-edit"></i></h1>
+      <p>Update category name</p>
+    </div>
+    <a class="btn" href="{{ url_for('category_manage') }}">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
+  </div>
+</div>
+
+<div class="category-edit-section">
+  <div class="category-form-card">
+    <form method="POST" action="{{ url_for('category_update', old_name=old_name) }}" class="category-form">
+      <div class="form-group">
+        <label for="category_name">Category Name</label>
+        <input 
+          type="text" 
+          id="category_name" 
+          name="name" 
+          value="{{ old_name }}"
+          required
+          class="category-input"
+        >
+      </div>
+      <div class="form-actions">
+        <a href="{{ url_for('category_manage') }}" class="btn">Cancel</a>
+        <button type="submit" class="btn primary">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
