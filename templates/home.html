@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/home.css') }}">
+{% endblock %}
 {% block content %}
 
 <div class="landing">
@@ -48,18 +51,18 @@
     <div class="features-container">
       <div class="feature-card">
         <div class="feature-icon"><i class="fas fa-pump-soap"></i></div>
-        <h3>Gentle Cleanser</h3>
-        <p>Daily cleanse without stripping your skin barrier.</p>
-      </div>
+      <h3>Gentle Cleanser</h3>
+      <p>Daily cleanse without stripping your skin barrier.</p>
+    </div>
       <div class="feature-card">
         <div class="feature-icon"><i class="fas fa-magic"></i></div>
-        <h3>Vitamin C Serum</h3>
-        <p>Glow boost with brightening antioxidants.</p>
-      </div>
+      <h3>Vitamin C Serum</h3>
+      <p>Glow boost with brightening antioxidants.</p>
+    </div>
       <div class="feature-card">
         <div class="feature-icon"><i class="fas fa-sun"></i></div>
-        <h3>SPF 50+</h3>
-        <p>Lightweight protection for everyday wear.</p>
+      <h3>SPF 50+</h3>
+      <p>Lightweight protection for everyday wear.</p>
       </div>
     </div>
   </section>

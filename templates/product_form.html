@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/product_form.css') }}">
+{% endblock %}
 {% block content %}
 
 <div class="hero">
@@ -19,9 +22,9 @@
         <option value="{{ c }}" {% if current==c %}selected{% endif %}>{{ c }}</option>
       {% endfor %}
     {% else %}
-      {% for c in ['Cleanser','Serum','Moisturizer','Sunscreen','Mask','Toner'] %}
-        <option value="{{ c }}" {% if current==c %}selected{% endif %}>{{ c }}</option>
-      {% endfor %}
+    {% for c in ['Cleanser','Serum','Moisturizer','Sunscreen','Mask','Toner'] %}
+      <option value="{{ c }}" {% if current==c %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
     {% endif %}
   </select>
   <small class="helper"><a href="{{ url_for('category_manage') }}">Manage categories</a></small>

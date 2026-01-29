@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/categories.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/category_edit.css') }}">
+{% endblock %}
 {% block content %}
 
 <div class="admin-header">

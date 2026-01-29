@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
+{% endblock %}
 {% block content %}
 
 <div class="admin-header">
@@ -58,7 +61,7 @@
     </div>
 
     <div class="admin-grid">
-      {% for p in products %}
+    {% for p in products %}
         <div class="admin-card">
           <div class="admin-card-image">
             {% if p.image_filename %}
@@ -95,7 +98,7 @@
             </form>
           </div>
         </div>
-      {% endfor %}
+    {% endfor %}
     </div>
   </div>
 {% endif %}

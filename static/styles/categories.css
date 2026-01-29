@@ -1,0 +1,219 @@
+/* ========================================
+   CATEGORIES PAGE STYLES - Category management specific
+   ======================================== */
+
+/* Category Section */
+.category-section{
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Category Form Card */
+.category-form-card{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 32px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.category-form-card h2{
+  margin: 0 0 24px;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.category-form-card h2 i{
+  color: var(--brand);
+}
+
+.category-form{
+  max-width: 600px;
+}
+
+/* Category Input */
+.category-input{
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.category-input:focus{
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(223, 155, 59, 0.15);
+  outline: none;
+}
+
+/* Categories List */
+.categories-list{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.categories-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--line);
+}
+
+.categories-header h2{
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.category-count{
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Category Empty State */
+.category-empty{
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.category-empty i{
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+/* Category Grid */
+.category-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Category Card */
+.category-card{
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.category-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-color: var(--brand);
+}
+
+.category-card-content h3{
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.category-product-count{
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Category Actions */
+.category-card-actions{
+  display: flex;
+  gap: 8px;
+}
+
+.category-action-btn{
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.category-action-btn.edit{
+  color: var(--brand);
+}
+
+.category-action-btn.edit:hover{
+  background: rgba(223, 155, 59, 0.1);
+  border-color: var(--brand);
+}
+
+.category-action-btn.delete{
+  color: var(--warn);
+}
+
+.category-action-btn.delete:hover{
+  background: rgba(179, 38, 30, 0.1);
+  border-color: var(--warn);
+}
+
+.category-action-btn.disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--muted);
+}
+
+.category-delete-form{
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.category-delete-form button{
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Category Edit Section */
+.category-edit-section{
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 640px){
+  .category-grid{
+    grid-template-columns: 1fr;
+  }
+  
+  .categories-header{
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
