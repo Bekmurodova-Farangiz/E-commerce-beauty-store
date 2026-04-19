@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/products.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/purchase.css') }}">
 {% endblock %}
 {% block content %}
 
-<div class="hero">
-  <h1>Purchase details 🧾</h1>
-  <p>Enter your details to complete the purchase of the products in your bucket.</p>
+<div class="page-hero">
+  <span class="page-kicker">Checkout</span>
+  <h1>Purchase Details</h1>
+  <p>Review your cart items and confirm the purchase while stock is still available.</p>
 </div>
 
 <h2>Order summary</h2>
 
 <div class="grid">
   {% for p in products %}
-    <div class="card">
+    <div class="card product-card">
       <div class="product-top">
         {% if p.image_filename %}
           <img
@@ -25,8 +25,18 @@
           <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
         {% endif %}
 
-        <div>
+        <div class="product-copy">
+          <div class="stock-badge {% if p.stock <= 0 %}out{% elif p.stock < p.quantity or p.stock < 5 %}low{% endif %}">
+            {% if p.stock <= 0 %}
+              Out of stock
+            {% elif p.stock < p.quantity %}
+              Only {{ p.stock }} left
+            {% else %}
+              {{ p.stock }} in stock
+            {% endif %}
+          </div>
           <h3>{{ p.name }}</h3>
+          <p class="product-quantity">Quantity: {{ p.quantity }}</p>
           <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
         </div>
       </div>
@@ -58,4 +68,3 @@
 </form>
 
 {% endblock %}
-

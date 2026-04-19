@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "secret-key-change-later"
+app.config["STOCK_SCHEMA_READY"] = False
 
 DB_CONFIG = {
     "host": "localhost",
@@ -25,9 +26,82 @@ def allowed_file(filename):
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
-def get_db():
-    return mysql.connector.connect(**DB_CONFIG)
+def ensure_stock_schema(db):
+    if app.config.get("STOCK_SCHEMA_READY"):
+        return
 
+    cur = db.cursor()
+    cur.execute("SHOW COLUMNS FROM products LIKE 'stock'")
+    has_stock_column = cur.fetchone() is not None
+
+    if not has_stock_column:
+        cur.execute("ALTER TABLE products ADD COLUMN stock INT NOT NULL DEFAULT 10")
+        db.commit()
+
+    cur.close()
+    app.config["STOCK_SCHEMA_READY"] = True
+
+
+def get_db():
+    db = mysql.connector.connect(**DB_CONFIG)
+    ensure_stock_schema(db)
+    return db
+
+
+def parse_stock_value(raw_value):
+    try:
+        stock = int(raw_value)
+    except (TypeError, ValueError):
+        return None
+    return max(stock, 0)
+
+
+def get_cart_products(db, user_id):
+    cur = db.cursor(dictionary=True)
+    cur.execute("""
+        SELECT
+            cart_items.id AS cart_id,
+            cart_items.quantity,
+            products.id AS product_id,
+            products.name,
+            products.description,
+            products.price,
+            products.category,
+            products.image_filename,
+            products.stock
+        FROM cart_items
+        JOIN products ON cart_items.product_id = products.id
+        WHERE cart_items.user_id = %s
+        ORDER BY cart_items.created_at DESC
+    """, (user_id,))
+    items = cur.fetchall()
+    cur.close()
+    return items
+
+
+@app.context_processor
+def inject_nav_counts():
+    liked_count = 0
+    bucket_count = 0
+
+    if "user_id" in session:
+        user_id = session["user_id"]
+        db = get_db()
+        cur = db.cursor(dictionary=True)
+        #Count wishlist items
+        cur.execute("SELECT COUNT(*) AS count FROM wishlist WHERE user_id = %s", (user_id,))
+        liked_result = cur.fetchone()
+        liked_count = liked_result["count"] if liked_result else 0
+        #Count cart items
+        cur.execute("SELECT COUNT(*) AS count FROM cart_items WHERE user_id = %s", (user_id,))
+        bucket_result = cur.fetchone()
+        bucket_count = bucket_result["count"] if bucket_result else 0
+
+        cur.close()
+        db.close()
+
+    return dict(liked_count=liked_count, bucket_count=bucket_count)
+#login_required decorator
 def login_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -35,7 +109,7 @@ def login_required(fn):
             return redirect(url_for("login"))
         return fn(*args, **kwargs)
     return wrapper
-
+#admin_required decorator
 def admin_required(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -117,9 +191,10 @@ def search():
 
     db = get_db()
     cur = db.cursor(dictionary=True)
-
-    sql = "SELECT * FROM products WHERE 1=1"
+    #Dynamic SQL query building
+    #base condition to simplify dynamic query construction optional filters are added
     params = []
+    sql = "SELECT * FROM products WHERE 1=1"
 
     if q:
         sql += " AND (name LIKE %s OR description LIKE %s OR category LIKE %s)"
@@ -132,8 +207,8 @@ def search():
 
     sql += " ORDER BY id DESC"
 
-    cur.execute(sql, tuple(params))
-    products = cur.fetchall()
+    cur.execute(sql, tuple(params)) #Converts the list into a tuple for database execution.
+    products = cur.fetchall()#Gets all matching rows.
 
     # categories for dropdown
     cur.execute("SELECT DISTINCT category FROM products ORDER BY category ASC")
@@ -205,7 +280,20 @@ def _remove_id_from_session_list(key, product_id):
 @app.route("/products/<int:product_id>/like", methods=["POST"])
 @login_required
 def like_product(product_id):
-    _add_id_to_session_list("liked_items", product_id)
+    user_id = session["user_id"]
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("""
+        INSERT IGNORE INTO wishlist (user_id, product_id)
+        VALUES (%s, %s)
+    """, (user_id, product_id))
+
+    db.commit()
+    cur.close()
+    db.close()
+
     flash("Product added to your liked items")
     return redirect(request.referrer or url_for("products"))
 
@@ -213,23 +301,44 @@ def like_product(product_id):
 @app.route("/liked")
 @login_required
 def liked_items():
-    liked_ids = _get_ids_from_session("liked_items")
-    products = []
-    if liked_ids:
-        placeholders = ",".join(["%s"] * len(liked_ids))
-        db = get_db()
-        cur = db.cursor(dictionary=True)
-        cur.execute(f"SELECT * FROM products WHERE id IN ({placeholders}) ORDER BY id DESC", tuple(liked_ids))
-        products = cur.fetchall()
-        cur.close()
-        db.close()
+    user_id = session["user_id"]
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+
+    cur.execute("""
+        SELECT products.*
+        FROM wishlist
+        JOIN products ON wishlist.product_id = products.id
+        WHERE wishlist.user_id = %s
+        ORDER BY wishlist.created_at DESC
+    """, (user_id,))
+
+    products = cur.fetchall()
+
+    cur.close()
+    db.close()
+
     return render_template("liked.html", products=products)
 
 
 @app.route("/products/<int:product_id>/unlike", methods=["POST"])
 @login_required
 def unlike_product(product_id):
-    _remove_id_from_session_list("liked_items", product_id)
+    user_id = session["user_id"]
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("""
+        DELETE FROM wishlist
+        WHERE user_id = %s AND product_id = %s
+    """, (user_id, product_id))
+
+    db.commit()
+    cur.close()
+    db.close()
+
     flash("Product removed from your liked items")
     return redirect(request.referrer or url_for("liked_items"))
 
@@ -237,7 +346,56 @@ def unlike_product(product_id):
 @app.route("/products/<int:product_id>/bucket", methods=["POST"])
 @login_required
 def add_to_bucket(product_id):
-    _add_id_to_session_list("bucket", product_id)
+    user_id = session["user_id"]
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+
+    cur.execute("SELECT id, name, stock FROM products WHERE id = %s", (product_id,))
+    product = cur.fetchone()
+
+    if not product:
+        cur.close()
+        db.close()
+        flash("Product not found")
+        return redirect(request.referrer or url_for("products"))
+
+    if int(product["stock"]) <= 0:
+        cur.close()
+        db.close()
+        flash("This product is currently out of stock")
+        return redirect(request.referrer or url_for("products"))
+
+    cur.execute("""
+        SELECT * FROM cart_items
+        WHERE user_id = %s AND product_id = %s
+    """, (user_id, product_id))
+    existing_item = cur.fetchone()
+
+    if existing_item and int(existing_item["quantity"]) >= int(product["stock"]):
+        cur.close()
+        db.close()
+        flash("You already have the maximum available stock for this product in your cart")
+        return redirect(request.referrer or url_for("products"))
+
+    if existing_item:
+        cur = db.cursor()
+        cur.execute("""
+            UPDATE cart_items
+            SET quantity = quantity + 1
+            WHERE user_id = %s AND product_id = %s
+        """, (user_id, product_id))
+    else:
+        cur = db.cursor()
+        cur.execute("""
+            INSERT INTO cart_items (user_id, product_id, quantity)
+            VALUES (%s, %s, 1)
+        """, (user_id, product_id))
+
+    db.commit()
+    cur.close()
+    db.close()
+
     flash("Product added to your bucket")
     return redirect(request.referrer or url_for("products"))
 
@@ -245,25 +403,34 @@ def add_to_bucket(product_id):
 @app.route("/bucket")
 @login_required
 def bucket():
-    bucket_ids = _get_ids_from_session("bucket")
-    products = []
-    total = 0
-    if bucket_ids:
-        placeholders = ",".join(["%s"] * len(bucket_ids))
-        db = get_db()
-        cur = db.cursor(dictionary=True)
-        cur.execute(f"SELECT * FROM products WHERE id IN ({placeholders}) ORDER BY id DESC", tuple(bucket_ids))
-        products = cur.fetchall()
-        total = sum(float(p["price"]) for p in products)
-        cur.close()
-        db.close()
+    user_id = session["user_id"]
+
+    db = get_db()
+    products = get_cart_products(db, user_id)
+    total = sum(float(p["price"]) * int(p["quantity"]) for p in products)
+
+    db.close()
+
     return render_template("bucket.html", products=products, total=total)
 
 
 @app.route("/products/<int:product_id>/remove-from-bucket", methods=["POST"])
 @login_required
 def remove_from_bucket(product_id):
-    _remove_id_from_session_list("bucket", product_id)
+    user_id = session["user_id"]
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("""
+        DELETE FROM cart_items
+        WHERE user_id = %s AND product_id = %s
+    """, (user_id, product_id))
+
+    db.commit()
+    cur.close()
+    db.close()
+
     flash("Product removed from your bucket")
     return redirect(request.referrer or url_for("bucket"))
 
@@ -271,10 +438,16 @@ def remove_from_bucket(product_id):
 @app.route("/purchase", methods=["GET", "POST"])
 @login_required
 def purchase():
-    bucket_ids = _get_ids_from_session("bucket")
-    if not bucket_ids:
-        flash("Your bucket is empty")
+    user_id = session["user_id"]
+    db = get_db()
+    cart_items = get_cart_products(db, user_id)
+
+    if not cart_items:
+        db.close()
+        flash("Your cart is empty")
         return redirect(url_for("products"))
+
+    total = sum(float(item["price"]) * int(item["quantity"]) for item in cart_items)
 
     if request.method == "POST":
         name = request.form["name"]
@@ -282,35 +455,63 @@ def purchase():
         address = request.form["address"]
         notes = request.form.get("notes", "")
 
-        # Persist purchase info to a simple text log
-        try:
-            with open("orders.txt", "a", encoding="utf-8") as f:
-                f.write(
-                    f"User {session.get('user_id')} - {name} <{email}>\n"
-                    f"Address: {address}\n"
-                    f"Notes: {notes}\n"
-                    f"Products: {bucket_ids}\n"
-                    "------\n"
-                )
-        except Exception:
-            pass
+        for item in cart_items:
+            available_stock = int(item["stock"])
+            requested_quantity = int(item["quantity"])
+            if available_stock < requested_quantity:
+                db.close()
+                if available_stock <= 0:
+                    flash(f"{item['name']} is now out of stock")
+                else:
+                    flash(f"Only {available_stock} item(s) left for {item['name']}")
+                return redirect(url_for("bucket"))
 
-        session["bucket"] = []
-        flash("Thank you for your purchase! We have received your order.")
+        cur = db.cursor()
+        try:
+            cur.execute("""
+                INSERT INTO orders (user_id, total_price)
+                VALUES (%s, %s)
+            """, (user_id, total))
+            order_id = cur.lastrowid
+
+            for item in cart_items:
+                quantity = int(item["quantity"])
+                cur.execute("""
+                    UPDATE products
+                    SET stock = stock - %s
+                    WHERE id = %s AND stock >= %s
+                """, (quantity, item["product_id"], quantity))
+
+                if cur.rowcount != 1:
+                    db.rollback()
+                    flash(f"{item['name']} no longer has enough stock to complete this purchase")
+                    cur.close()
+                    db.close()
+                    return redirect(url_for("bucket"))
+
+                cur.execute("""
+                    INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase)
+                    VALUES (%s, %s, %s, %s)
+                """, (order_id, item["product_id"], quantity, item["price"]))
+
+            cur.execute("DELETE FROM cart_items WHERE user_id = %s", (user_id,))
+            db.commit()
+        except mysql.connector.Error:
+            db.rollback()
+            flash("We could not complete your purchase right now. Please try again.")
+            cur.close()
+            db.close()
+            return redirect(url_for("bucket"))
+
+        cur.close()
+        db.close()
+
+        flash("Order placed successfully!")
         return redirect(url_for("products"))
 
-    # GET: show purchase form
-    bucket_ids = _get_ids_from_session("bucket")
-    placeholders = ",".join(["%s"] * len(bucket_ids))
-    db = get_db()
-    cur = db.cursor(dictionary=True)
-    cur.execute(f"SELECT * FROM products WHERE id IN ({placeholders})", tuple(bucket_ids))
-    products = cur.fetchall()
-    total = sum(float(p["price"]) for p in products)
-    cur.close()
     db.close()
 
-    return render_template("purchase.html", products=products, total=total)
+    return render_template("purchase.html", products=cart_items, total=total)
 
 
 @app.route("/admin")
@@ -325,10 +526,11 @@ def admin():
     # Get categories for stats
     cur.execute("SELECT DISTINCT category FROM products ORDER BY category ASC")
     categories = [row["category"] for row in cur.fetchall()]
+    low_stock_count = sum(1 for product in products if int(product.get("stock", 0)) < 5)
     
     cur.close()
     db.close()
-    return render_template("admin.html", products=products, categories=categories)
+    return render_template("admin.html", products=products, categories=categories, low_stock_count=low_stock_count)
 
 @app.route("/admin/product/new", methods=["GET", "POST"])
 @login_required
@@ -339,6 +541,11 @@ def product_new():
         description = request.form["description"]
         price = request.form["price"]
         category = request.form["category"]
+        stock = parse_stock_value(request.form.get("stock"))
+
+        if stock is None:
+            flash("Stock must be a whole number")
+            return redirect(url_for("product_new"))
 
         image_file = request.files.get("image")
         filename = None
@@ -351,8 +558,8 @@ def product_new():
         db = get_db()
         cur = db.cursor()
         cur.execute(
-            "INSERT INTO products (name, description, price, category, image_filename) VALUES (%s,%s,%s,%s,%s)",
-            (name, description, price, category, filename)
+            "INSERT INTO products (name, description, price, category, image_filename, stock) VALUES (%s,%s,%s,%s,%s,%s)",
+            (name, description, price, category, filename, stock)
         )
         db.commit()
         cur.close()
@@ -389,6 +596,13 @@ def product_edit(id):
         description = request.form["description"]
         price = request.form["price"]
         category = request.form["category"]
+        stock = parse_stock_value(request.form.get("stock"))
+
+        if stock is None:
+            flash("Stock must be a whole number")
+            cur.close()
+            db.close()
+            return redirect(url_for("product_edit", id=id))
 
         image_file = request.files.get("image")
         filename = request.form.get("existing_image")
@@ -399,8 +613,8 @@ def product_edit(id):
             image_file.save(image_path)
 
         cur.execute(
-            "UPDATE products SET name=%s, description=%s, price=%s, category=%s, image_filename=%s WHERE id=%s",
-            (name, description, price, category, filename, id)
+            "UPDATE products SET name=%s, description=%s, price=%s, category=%s, image_filename=%s, stock=%s WHERE id=%s",
+            (name, description, price, category, filename, stock, id)
         )
         db.commit()
         cur.close()
@@ -533,9 +747,44 @@ def category_delete(name):
     flash(f"Category '{name}' has been removed (no products were using it)")
     return redirect(url_for("category_manage"))
 
+@app.route("/orders")
+@login_required
+def orders():
+    user_id = session["user_id"]
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+
+    # Get all orders for this user
+    cur.execute("""
+        SELECT * FROM orders
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    """, (user_id,))
+    orders = cur.fetchall()
+
+    # For each order, get its products
+    for order in orders:
+        cur.execute("""
+            SELECT 
+                order_items.quantity,
+                order_items.price_at_purchase,
+                products.name,
+                products.image_filename,
+                products.category
+            FROM order_items
+            JOIN products ON order_items.product_id = products.id
+            WHERE order_items.order_id = %s
+        """, (order["id"],))
+        order["items"] = cur.fetchall()
+
+    cur.close()
+    db.close()
+
+    return render_template("orders.html", orders=orders)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
-
 
 

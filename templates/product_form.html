@@ -1,12 +1,10 @@
 {% extends "base.html" %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/product_form.css') }}">
-{% endblock %}
 {% block content %}
 
-<div class="hero">
-  <h1>{% if product %}Edit{% else %}Add{% endif %} Product <i class="fas fa-pump-soap"></i></h1>
-  <p>Fill in product details: name, category, description, and price.</p>
+<div class="page-hero">
+  <span class="page-kicker">Admin catalog</span>
+  <h1>{% if product %}Edit{% else %}Add{% endif %} Product</h1>
+  <p>Fill in the product details, including the available stock the shop can sell.</p>
 </div>
 
 <form method="POST" enctype="multipart/form-data">
@@ -50,6 +48,11 @@
   <label>Price (€)</label>
   <input name="price" type="number" step="0.01" placeholder="e.g., 19.99"
          value="{{ product.price if product else '' }}" required>
+
+  <label>Available stock</label>
+  <input name="stock" type="number" min="0" step="1" placeholder="e.g., 10"
+         value="{{ product.stock if product else 10 }}" required>
+  <small class="helper">Use a whole number. When stock reaches 0, customers cannot buy the product.</small>
 
   <button type="submit">Save</button>
   <small class="helper">Tip: Keep descriptions short for a premium store look <i class="fas fa-star"></i></small>

@@ -3,53 +3,62 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{ title or "By Farangiz" }}</title>
+  <title>{{ title or "Farangiz's Beauty" }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="{{ url_for('static', filename='styles/base.css') }}">
   {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
 {% if request.path != '/home' and request.path != '/' %}
-  <nav>
-    <div class="brand">By Farangiz <i class="fas fa-pump-soap"></i></div>
-    <a href="{{ url_for('landing') }}">Home</a>
-    <a href="{{ url_for('products') }}">Products</a>
+  <nav class="site-nav" aria-label="Main navigation">
+    <div class="nav-shell">
+      <a class="site-brand" href="{{ url_for('landing') }}" aria-label="Farangiz's Beauty home page">
+        <span class="site-brand-mark"><i class="fas fa-bag-shopping"></i></span>
+        <span class="site-brand-text">Farangiz&rsquo;s Beauty</span>
+      </a>
 
-    {% if session.get("role") == "admin" %}
-      <a href="{{ url_for('admin') }}">Admin</a>
-    {% endif %}
+      <div class="site-nav-links">
+        <a href="{{ url_for('landing') }}">Home</a>
+        <a href="{{ url_for('products') }}">Shop All</a>
+        <a href="{{ url_for('orders') }}">Orders</a>
+        {% if session.get("role") == "admin" %}
+          <a href="{{ url_for('admin') }}">Admin</a>
+        {% endif %}
+      </div>
 
-    <div class="nav-right">
-      {% if session.get("user_id") %}
-        <span>Hi, {{ session.get("username") }}</span>
-        <a class="icon-link" href="{{ url_for('liked_items') }}" title="Liked items">
-          <span class="nav-badge">
-            <i class="fas fa-heart"></i>
-            {% set liked_count = session.get('liked_items', [])|length %}
-            {% if liked_count > 0 %}
-              <span class="count">{{ liked_count }}</span>
-            {% endif %}
-          </span>
-        </a>
-        <a class="icon-link" href="{{ url_for('bucket') }}" title="Bucket">
-          <span class="nav-badge">
-            <i class="fas fa-shopping-cart"></i>
-            {% set bucket_count = session.get('bucket', [])|length %}
-            {% if bucket_count > 0 %}
-              <span class="count">{{ bucket_count }}</span>
-            {% endif %}
-          </span>
-        </a>
-        <a class="btn" href="{{ url_for('logout') }}">Logout</a>
-      {% else %}
-        <a class="btn" href="{{ url_for('login') }}">Login</a>
-      {% endif %}
+      <div class="nav-right">
+        {% if session.get("user_id") %}
+          <span class="nav-greeting">Hi, {{ session.get("username") }}</span>
+          <a class="icon-link" href="{{ url_for('liked_items') }}" title="Liked items" aria-label="Liked items">
+            <span class="nav-badge">
+              <i class="fas fa-heart"></i>
+              {% if liked_count > 0 %}
+                <span class="count">{{ liked_count }}</span>
+              {% endif %}
+            </span>
+          </a>
+          <a class="icon-link" href="{{ url_for('bucket') }}" title="Bucket" aria-label="Bucket">
+            <span class="nav-badge">
+              <i class="fas fa-shopping-cart"></i>
+              {% if bucket_count > 0 %}
+                <span class="count">{{ bucket_count }}</span>
+              {% endif %}
+            </span>
+          </a>
+          <a class="btn" href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+          <a class="btn" href="{{ url_for('login') }}">Login</a>
+        {% endif %}
+      </div>
     </div>
   </nav>
 {% endif %}
 
-<div class="container">
+<div class="container {% block container_class %}{% endblock %}">
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <div class="flash">

@@ -1,21 +1,30 @@
 {% extends "base.html" %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/products.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/bucket.css') }}">
 {% endblock %}
-{% block content %}
 
-<div class="hero">
-  <h1>Your bucket <i class="fas fa-shopping-cart"></i></h1>
-  <p>Review the products in your bucket and proceed to purchase.</p>
+{% block content %}
+<section class="page-hero">
+  <span class="page-kicker">Your beauty bag</span>
+  <h1>Cart</h1>
+  <p>Review your selected products, confirm your total, and continue to checkout when everything feels right.</p>
+</section>
+
+<div class="section-title">
+  <h2>Items in your cart</h2>
+  <small>{{ products|length }} item{{ 's' if products|length != 1 else '' }}</small>
 </div>
 
 {% if products|length == 0 %}
-  <p>Your bucket is empty.</p>
+  <div class="empty-state">
+    <h2>Your cart is empty</h2>
+    <p>Add products from the collection to start building your skincare ritual.</p>
+  </div>
 {% else %}
-  <div class="grid">
+  <div class="grid product-grid">
     {% for p in products %}
-      <div class="card">
+      <article class="card product-card">
         <div class="product-top">
           {% if p.image_filename %}
             <img
@@ -26,32 +35,51 @@
             <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
           {% endif %}
 
-          <div>
-            <h3>{{ p.name }}</h3>
-            <p>{{ p.description }}</p>
-            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
+          <div class="product-copy">
             {% if p.category %}
               <div class="tag"><i class="fas fa-tag"></i> {{ p.category }}</div>
             {% endif %}
+            <div class="stock-badge {% if p.stock <= 0 %}out{% elif p.stock < p.quantity or p.stock < 5 %}low{% endif %}">
+              {% if p.stock <= 0 %}
+                Out of stock
+              {% elif p.stock < p.quantity %}
+                Only {{ p.stock }} left
+              {% else %}
+                {{ p.stock }} in stock
+              {% endif %}
+            </div>
+            <h3>{{ p.name }}</h3>
+            <p class="product-quantity">Quantity in cart: {{ p.quantity }}</p>
+            <p>{{ p.description }}</p>
+            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
           </div>
         </div>
 
         <div class="card-actions">
-          <form method="POST" action="{{ url_for('remove_from_bucket', product_id=p.id) }}">
-            <button class="icon-btn remove-btn" type="submit" title="Remove from bucket"><i class="fas fa-times"></i></button>
+          <form action="{{ url_for('remove_from_bucket', product_id=p['product_id']) }}" method="POST">
+            <button class="small-btn danger card-btn" type="submit">
+              <i class="fas fa-trash"></i>
+              <span>Remove</span>
+            </button>
           </form>
         </div>
-      </div>
+      </article>
     {% endfor %}
   </div>
 
-  <div class="section-title">
-    <h2>Total</h2>
-    <small>€ {{ "%.2f"|format(total) }}</small>
+  <div class="summary-bar">
+    <div>
+      <span class="page-kicker">Order total</span>
+      <h2>Ready for checkout</h2>
+    </div>
+    <span class="summary-value">€ {{ "%.2f"|format(total) }}</span>
   </div>
 
-  <a class="btn primary" href="{{ url_for('purchase') }}">Proceed to purchase</a>
+  <div class="checkout-actions">
+    <a class="btn primary" href="{{ url_for('purchase') }}">
+      <i class="fas fa-credit-card"></i>
+      <span>Proceed to Purchase</span>
+    </a>
+  </div>
 {% endif %}
-
 {% endblock %}
-

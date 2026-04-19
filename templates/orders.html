@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-hero">
+  <span class="page-kicker">Purchase history</span>
+  <h1>Your Orders</h1>
+  <p>Track your previous orders and review the products included in each skincare purchase.</p>
+</section>
+
+<div class="section-title">
+  <h2>Order history</h2>
+  <small>{{ orders|length if orders else 0 }} order{{ 's' if orders and orders|length != 1 else '' }}</small>
+</div>
+
+{% if orders %}
+  <div class="orders-grid">
+    {% for order in orders %}
+      <article class="card order-card">
+        <h3>Order #{{ order.id }}</h3>
+        <div class="order-meta">
+          <span><strong>Total:</strong> € {{ "%.2f"|format(order.total_price) }}</span>
+          <span><strong>Date:</strong> {{ order.created_at }}</span>
+        </div>
+
+        <hr class="order-divider">
+
+        <h4>Products in this order</h4>
+
+        {% if order["items"] %}
+          <ul class="order-items">
+            {% for item in order["items"] %}
+              <li>
+                <strong>{{ item.name }}</strong><br>
+                Quantity: {{ item.quantity }}<br>
+                Price at purchase: € {{ "%.2f"|format(item.price_at_purchase) }}<br>
+                Category: {{ item.category }}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No items found for this order.</p>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <h2>No orders yet</h2>
+    <p>Once you complete a purchase, your order history will appear here in a clean summary view.</p>
+  </div>
+{% endif %}
+{% endblock %}

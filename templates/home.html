@@ -1,81 +1,76 @@
 {% extends "base.html" %}
+
+{% block body_class %}page-home{% endblock %}
+{% block container_class %}landing-shell{% endblock %}
+
 {% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Allura&family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/home.css') }}">
 {% endblock %}
+
 {% block content %}
+<div class="beauty-home">
+  <header class="beauty-nav">
+    <a class="beauty-brand" href="{{ url_for('landing') }}" aria-label="Farangiz's Beauty home page">
+      <span class="beauty-brand-mark"><i class="fas fa-bag-shopping"></i></span>
+      <span class="beauty-brand-text">Farangiz&rsquo;s Beauty</span>
+    </a>
 
-<div class="landing">
-  <!-- Navigation Header -->
-  <header class="landing-nav">
-    <div class="logo">
-      <span class="logo-badge"><i class="fas fa-pump-soap"></i></span>
-      <span class="logo-text">By Farangiz</span>
-    </div>
-
-    <nav class="menu">
-      <a href="{{ url_for('landing') }}">Home</a>
-      <a href="{{ url_for('products') }}">Shop</a>
+    <nav class="beauty-menu" aria-label="Primary navigation">
+      <a href="{{ url_for('products') }}">Shop All</a>
+      <a href="#story">Our Story</a>
+      <a href="#blog">Blog</a>
+      <a href="#contact">Contact</a>
     </nav>
 
-    <div class="nav-icons">
-      <a class="icon" href="{{ url_for('search') }}" title="Search"><i class="fas fa-search"></i></a>
-      <a class="icon" href="{{ url_for('products') }}" title="Cart"><i class="fas fa-shopping-bag"></i></a>
-    </div>
+    <a class="beauty-cart" href="{{ url_for('bucket') }}" aria-label="Open cart">
+      <i class="fas fa-bag-shopping"></i>
+      <span>Cart</span>
+      {% if bucket_count > 0 %}
+        <span class="beauty-cart-count">{{ bucket_count }}</span>
+      {% endif %}
+    </a>
   </header>
 
-  <!-- Hero Section -->
-  <section class="hero hero-image">
-    <div class="hero-content">
-      <div class="kicker">NEW ARRIVALS</div>
-      <h1><span class="accent">Glow</span> Essentials</h1>
-      <p>
-        Discover gentle skincare that fits your routine: cleanser, serum, moisturizer and SPF —
-        simple, effective, beautiful.
+  <section class="beauty-hero">
+    <div class="beauty-copy">
+      <h1>Beauty Begins with You</h1>
+      <p class="beauty-summary">
+        Premium skincare designed to bring out your most luminous self.
       </p>
-
-      <div class="hero-actions">
-        <a class="btn primary" href="{{ url_for('products') }}">Shop Now</a>
-        <a class="btn" href="{{ url_for('login') }}">Login</a>
-      </div>
-
-      <div class="trust">
-        <span><i class="fas fa-star"></i> Bestseller Picks</span>
-        <span><i class="fas fa-leaf"></i> Clean formulas</span>
-        <span><i class="fas fa-sun"></i> SPF ready</span>
-      </div>
+      <a class="beauty-cta" href="{{ url_for('products') }}">Shop the Collection</a>
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="features-section" id="about">
-    <div class="features-container">
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-pump-soap"></i></div>
-      <h3>Gentle Cleanser</h3>
-      <p>Daily cleanse without stripping your skin barrier.</p>
-    </div>
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-magic"></i></div>
-      <h3>Vitamin C Serum</h3>
-      <p>Glow boost with brightening antioxidants.</p>
-    </div>
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-sun"></i></div>
-      <h3>SPF 50+</h3>
-      <p>Lightweight protection for everyday wear.</p>
-      </div>
-    </div>
-  </section>
+  <section class="beauty-notes">
+    <article class="beauty-note" id="story">
+      <p class="beauty-note-label">Our Story</p>
+      <h2>Soft rituals with a polished finish.</h2>
+      <p>
+        Farangiz&rsquo;s Beauty is built around calm, elegant skincare moments and a simple luxury
+        feeling that is easy to shop and easy to love.
+      </p>
+    </article>
 
-  <!-- CTA Section -->
-  <section class="cta-section">
-    <div class="cta-content">
-      <h2>Ready to Transform Your Skin?</h2>
-      <p>Join thousands of satisfied customers who trust By Farangiz for their daily routine.</p>
-      <a class="btn primary" href="{{ url_for('products') }}">Explore Products</a>
-    </div>
-  </section>
+    <article class="beauty-note" id="blog">
+      <p class="beauty-note-label">Blog</p>
+      <h2>Beauty guidance that feels clear and modern.</h2>
+      <p>
+        Explore product highlights, skincare tips, and clean routines inspired by premium Korean
+        beauty presentation.
+      </p>
+    </article>
 
+    <article class="beauty-note" id="contact">
+      <p class="beauty-note-label">Contact</p>
+      <h2>Support for every step of your order.</h2>
+      <p>
+        Browse, add items to cart, and move through the store with a gentle interface that keeps
+        the experience smooth and professional.
+      </p>
+    </article>
+  </section>
 </div>
-
 {% endblock %}

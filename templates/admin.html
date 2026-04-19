@@ -1,68 +1,76 @@
 {% extends "base.html" %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/admin.css') }}">
 {% endblock %}
-{% block content %}
 
-<div class="admin-header">
-  <div class="admin-header-content">
+{% block content %}
+<section class="page-hero admin-hero">
+  <span class="page-kicker">Admin dashboard</span>
+  <div class="admin-hero-head">
     <div>
-      <h1>Admin Dashboard <i class="fas fa-crown"></i></h1>
-      <p>Manage your skincare product catalog</p>
+      <h1>Catalog Management</h1>
+      <p>Keep the Farangiz&rsquo;s Beauty product catalog polished, organized, and ready for shoppers.</p>
     </div>
     <div class="admin-header-actions">
       <a class="btn" href="{{ url_for('category_manage') }}">
-        <i class="fas fa-tags"></i> Manage Categories
+        <i class="fas fa-tags"></i>
+        <span>Manage Categories</span>
       </a>
       <a class="btn primary" href="{{ url_for('product_new') }}">
-        <i class="fas fa-plus"></i> Add Product
+        <i class="fas fa-plus"></i>
+        <span>Add Product</span>
       </a>
     </div>
   </div>
-</div>
+</section>
 
 {% if products|length == 0 %}
-  <div class="admin-empty">
+  <div class="admin-empty empty-state">
     <div class="admin-empty-icon">
       <i class="fas fa-box-open"></i>
     </div>
     <h2>No products yet</h2>
-    <p>Get started by adding your first skincare product to the catalog.</p>
+    <p>Start your catalog by adding the first product to the beauty collection.</p>
     <a class="btn primary" href="{{ url_for('product_new') }}">
-      <i class="fas fa-plus"></i> Add Your First Product
+      <i class="fas fa-plus"></i>
+      <span>Add Your First Product</span>
     </a>
   </div>
 {% else %}
   <div class="admin-stats">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-box"></i>
-      </div>
+    <article class="stat-card">
+      <div class="stat-icon"><i class="fas fa-box"></i></div>
       <div class="stat-content">
         <h3>{{ products|length }}</h3>
         <p>Total Products</p>
       </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-tags"></i>
-      </div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-icon"><i class="fas fa-tags"></i></div>
       <div class="stat-content">
         <h3>{{ (categories|length) if categories else 0 }}</h3>
         <p>Categories</p>
       </div>
-    </div>
+    </article>
+    <article class="stat-card">
+      <div class="stat-icon"><i class="fas fa-cubes"></i></div>
+      <div class="stat-content">
+        <h3>{{ low_stock_count }}</h3>
+        <p>Low Stock</p>
+      </div>
+    </article>
   </div>
 
-  <div class="admin-products">
-    <div class="admin-products-header">
-      <h2>Products</h2>
-      <span class="product-count">{{ products|length }} item{{ 's' if products|length != 1 else '' }}</span>
+  <section class="admin-products">
+    <div class="section-title admin-products-header">
+      <h2>Product catalog</h2>
+      <small>{{ products|length }} item{{ 's' if products|length != 1 else '' }}</small>
     </div>
 
     <div class="admin-grid">
-    {% for p in products %}
-        <div class="admin-card">
+      {% for p in products %}
+        <article class="admin-card">
           <div class="admin-card-image">
             {% if p.image_filename %}
               <img
@@ -82,25 +90,33 @@
           <div class="admin-card-content">
             <h3>{{ p.name }}</h3>
             <p class="admin-card-description">{{ p.description[:80] }}{% if p.description|length > 80 %}...{% endif %}</p>
+            <div class="admin-card-stock {% if p.stock <= 0 %}out{% elif p.stock < 5 %}low{% endif %}">
+              {% if p.stock <= 0 %}
+                Out of stock
+              {% elif p.stock < 5 %}
+                Only {{ p.stock }} left
+              {% else %}
+                {{ p.stock }} in stock
+              {% endif %}
+            </div>
             <div class="admin-card-price">€ {{ "%.2f"|format(p.price) }}</div>
           </div>
 
           <div class="admin-card-actions">
-            <a class="admin-action-btn edit" href="{{ url_for('product_edit', id=p.id) }}" title="Edit">
-              <i class="fas fa-edit"></i>
+            <a class="admin-action-btn edit" href="{{ url_for('product_edit', id=p.id) }}">
+              <i class="fas fa-pen"></i>
               <span>Edit</span>
             </a>
             <form method="POST" action="{{ url_for('product_delete', id=p.id) }}" class="admin-delete-form">
-              <button class="admin-action-btn delete" type="submit" title="Delete">
+              <button class="admin-action-btn delete" type="submit">
                 <i class="fas fa-trash"></i>
                 <span>Delete</span>
               </button>
             </form>
           </div>
-        </div>
-    {% endfor %}
+        </article>
+      {% endfor %}
     </div>
-  </div>
+  </section>
 {% endif %}
-
 {% endblock %}

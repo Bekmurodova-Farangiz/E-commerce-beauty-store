@@ -1,31 +1,37 @@
 {% extends "base.html" %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='styles/products.css') }}">
 {% endblock %}
+
 {% block content %}
-
-<div class="hero">
-  <h1>By Farangiz <i class="fas fa-pump-soap"></i> <i class="fas fa-star"></i></h1>
-  <p>Curated essentials: cleansers, serums, moisturizers, masks & SPF.</p>
-
+<section class="page-hero">
+  <span class="page-kicker">Farangiz&rsquo;s Beauty</span>
+  <h1>Skincare Collection</h1>
+  <p>Curated essentials for a gentle, luminous routine: cleansers, serums, moisturizers, masks, and SPF.</p>
   <div class="badges">
-    <span class="badge"><i class="fas fa-star"></i> Bestseller Picks</span>
-    <span class="badge"><i class="fas fa-pump-soap"></i> Gentle formulas</span>
-    <span class="badge"><i class="fas fa-sun"></i> Daily SPF</span>
+    <span class="badge"><i class="fas fa-star"></i> Bestseller picks</span>
+    <span class="badge"><i class="fas fa-pump-soap"></i> Soft formulas</span>
+    <span class="badge"><i class="fas fa-sun"></i> Everyday SPF</span>
     <span class="badge"><i class="fas fa-leaf"></i> Minimal routines</span>
   </div>
+</section>
+
+<div class="section-title">
+  <h2>Products</h2>
+  <small>{{ products|length }} item{{ 's' if products|length != 1 else '' }}</small>
 </div>
 
-<h2>Products</h2>
-
 {% if products|length == 0 %}
-  <p>No products available yet.</p>
+  <div class="empty-state">
+    <h2>No products available yet</h2>
+    <p>The collection is still being prepared. Check back soon for new skincare arrivals.</p>
+  </div>
 {% else %}
-  <div class="grid">
+  <div class="grid product-grid">
     {% for p in products %}
-      <div class="card">
+      <article class="card product-card">
         <div class="product-top">
-
           {% if p.image_filename %}
             <img
               src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}"
@@ -35,28 +41,48 @@
             <div class="thumb">{{ p.category[:1] if p.category else 'S' }}</div>
           {% endif %}
 
-          <div>
-            <h3>{{ p.name }}</h3>
-            <p>{{ p.description }}</p>
-            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
+          <div class="product-copy">
             {% if p.category %}
               <div class="tag"><i class="fas fa-tag"></i> {{ p.category }}</div>
             {% endif %}
+            <div class="stock-badge {% if p.stock <= 0 %}out{% elif p.stock < 5 %}low{% endif %}">
+              {% if p.stock <= 0 %}
+                Out of stock
+              {% elif p.stock < 5 %}
+                Only {{ p.stock }} left
+              {% else %}
+                {{ p.stock }} in stock
+              {% endif %}
+            </div>
+            <h3>{{ p.name }}</h3>
+            <p>{{ p.description }}</p>
+            <span class="price">€ {{ "%.2f"|format(p.price) }}</span>
           </div>
-
         </div>
 
         <div class="card-actions">
           <form method="POST" action="{{ url_for('like_product', product_id=p.id) }}">
-            <button class="icon-btn" type="submit" title="Like"><i class="fas fa-heart"></i></button>
+            <button class="small-btn like-btn" type="submit">
+              <i class="fas fa-heart"></i>
+              <span>Like</span>
+            </button>
           </form>
           <form method="POST" action="{{ url_for('add_to_bucket', product_id=p.id) }}">
-            <button class="icon-btn" type="submit" title="Add to bucket"><i class="fas fa-shopping-cart"></i></button>
+            {% if p.stock > 0 %}
+              <button class="btn primary card-btn" type="submit">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Add to Cart</span>
+              </button>
+            {% else %}
+              <button class="btn card-btn" type="button" disabled>
+                <i class="fas fa-ban"></i>
+                <span>Out of Stock</span>
+              </button>
+            {% endif %}
           </form>
         </div>
-      </div>
+      </article>
     {% endfor %}
   </div>
 {% endif %}
-
 {% endblock %}
