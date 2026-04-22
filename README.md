@@ -1,84 +1,118 @@
-# Beautiful Skincare E-commerce Website
+# Farangiz's Beauty — Skincare E-commerce Website
 
-This project is an original **E-commerce platform** developed for the **Web Programming course exam**.
+A premium beauty and skincare e-commerce web application developed for the Web Programming course exam.
 
-The application represents an online **beauty and skincare products store**, where users can register, log in, and browse products, while an administrator can manage the product catalog.
+This project simulates a modern online skincare store where customers can create accounts, browse products, manage shopping actions, and where an administrator can manage the catalog through a protected admin panel.
 
 ---
 
-## Features
+##  Main Features
 
-### User Features
+###  User Features
+
 - User registration and login
 - Secure authentication with hashed passwords
-- View skincare products with images, descriptions, prices, and categories
+- Browse skincare products
+- View product images, prices, descriptions, and categories
+- Wishlist / liked products
+- Shopping cart functionality
+- Order placement system
 
 ### Admin Features
-- Administrator login
+
+- Protected administrator access
 - Add new products
 - Edit existing products
 - Delete products
-- Upload product images from the admin panel
+- Upload product images
+- Manage available stock / product data
 
 ---
 
 ## Technologies Used
 
-- **Backend:** Python (Flask)
-- **Database:** MySQL
-- **Frontend:** HTML, CSS
-- **Authentication:** Flask sessions
-- **Image Upload:** Stored in `static/uploads`
+| Category | Technology |
+|--------|------------|
+| Backend | Python, Flask |
+| Database | MySQL |
+| Frontend | HTML5, CSS3, Jinja2 |
+| Authentication | Flask Sessions |
+| Styling | Custom CSS |
+| Image Upload | static/uploads/ |
+| Version Control | Git & GitHub |
 
 ---
 
 ## Project Structure
 
-wp9-ecommerce/
-├── app.py
-├── requirements.txt
-├── templates/
-│ ├── home.html
-│ ├── login.html
-│ ├── register.html
-│ ├── products.html
-│ ├── admin.html
-│ └── product_form.html
-├── static/
-│ ├── style.css
-│ └── uploads/
-├── README.md
-└── report.pdf
+text wp9-ecommerce/ │── app.py │── requirements.txt │── wp9_ecommerce.sql │── README.md │ ├── templates/ │   ├── home.html │   ├── login.html │   ├── register.html │   ├── products.html │   ├── admin.html │   └── product_form.html │ ├── static/ │   ├── images/ │   ├── styles/ │   └── uploads/ │ └── docs/     ├── report.pages     └── screenshots/ 
 
 ---
 
-## How to Run the Project Locally
+##  How to Run Locally
 
-### 1. Create and activate virtual environment
-```bash
-python3 -m venv venv
-source venv/bin/activate
-2. Install dependencies
-pip install -r requirements.txt
-3. Configure MySQL
-Create a database named: wp9_ecommerce
-Create required tables (users, products)
-4. Run the application
-python3 app.py
-5. Open in browser
-http://127.0.0.1:5000
-Admin Setup
-Register a normal user from the website
-Change the user role to admin in MySQL:
-UPDATE users SET role='admin' WHERE email='YOUR_EMAIL';
-Log out and log in again to access the admin panel
-Project Report
-A detailed PDF report describing:
-Project motivation
-Technologies used
-Development decisions
-Screenshots of the final application
-is included in the repository.
+### 1️ Create Virtual Environment
 
-Author
-Farangiz Bekmurodova
+bash python3 -m venv venv source venv/bin/activate 
+
+### 2️ Install Dependencies
+
+bash pip install -r requirements.txt 
+
+### 3️ Configure Database
+
+Create a MySQL database named:
+
+sql wp9_ecommerce 
+
+Import the schema if needed:
+
+bash wp9_ecommerce.sql 
+
+### 4️ Run Application
+
+bash python3 app.py 
+
+### 5️ Open in Browser
+
+text http://127.0.0.1:5000 
+
+---
+
+##  Admin Setup
+
+1. Register a normal user account  
+2. Open MySQL and run:
+
+sql UPDATE users SET role = 'admin' WHERE email = 'YOUR_EMAIL'; 
+
+3. Log out  
+4. Log in again  
+5. Access the admin panel
+
+---
+
+## Academic Goals of the Project
+
+This project demonstrates understanding of:
+
+- Full-stack web development fundamentals
+- Flask routing and templating
+- Database integration with MySQL
+- Authentication and sessions
+- CRUD operations
+- Responsive front-end styling
+- Project organization and version control
+
+---
+
+## Author
+
+Farangiz Bekmurodova  
+University Web Programming Project
+
+---
+
+## Note
+
+This project was developed for educational purposes as part of a university
