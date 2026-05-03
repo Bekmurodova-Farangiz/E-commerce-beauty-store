@@ -30,6 +30,26 @@
         {% endif %}
       </div>
 
+      <form method="GET" action="{{ url_for('products') }}" class="nav-search">
+        <input
+          type="text"
+          name="q"
+          placeholder="Search products..."
+          value="{{ request.args.get('q', '') }}"
+        >
+
+        <select name="category">
+          <option value="">All</option>
+          {% for c in categories %}
+            <option value="{{ c }}" {% if request.args.get('category') == c %}selected{% endif %}>
+              {{ c }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <button type="submit">Search</button>
+      </form>
+
       <div class="nav-right">
         {% if session.get("user_id") %}
           <span class="nav-greeting">Hi, {{ session.get("username") }}</span>

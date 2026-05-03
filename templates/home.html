@@ -25,6 +25,26 @@
       <a href="#contact">Contact</a>
     </nav>
 
+    <form method="GET" action="{{ url_for('products') }}" class="nav-search">
+      <input
+        type="text"
+        name="q"
+        placeholder="Search products..."
+        value="{{ request.args.get('q', '') }}"
+      >
+
+      <select name="category">
+        <option value="">All</option>
+        {% for c in categories %}
+          <option value="{{ c }}" {% if request.args.get('category') == c %}selected{% endif %}>
+            {{ c }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <button type="submit">Search</button>
+    </form>
+
     <a class="beauty-cart" href="{{ url_for('bucket') }}" aria-label="Open cart">
       <i class="fas fa-bag-shopping"></i>
       <span>Cart</span>

@@ -83,11 +83,14 @@ def get_cart_products(db, user_id):
 def inject_nav_counts():
     liked_count = 0
     bucket_count = 0
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+
+    cur.execute("SELECT DISTINCT category FROM products ORDER BY category ASC")
+    categories = [row["category"] for row in cur.fetchall()]
 
     if "user_id" in session:
         user_id = session["user_id"]
-        db = get_db()
-        cur = db.cursor(dictionary=True)
         #Count wishlist items
         cur.execute("SELECT COUNT(*) AS count FROM wishlist WHERE user_id = %s", (user_id,))
         liked_result = cur.fetchone()
@@ -97,10 +100,10 @@ def inject_nav_counts():
         bucket_result = cur.fetchone()
         bucket_count = bucket_result["count"] if bucket_result else 0
 
-        cur.close()
-        db.close()
+    cur.close()
+    db.close()
 
-    return dict(liked_count=liked_count, bucket_count=bucket_count)
+    return dict(liked_count=liked_count, bucket_count=bucket_count, categories=categories)
 #login_required decorator
 def login_required(fn):
     @wraps(fn)
@@ -786,5 +789,4 @@ def orders():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
 
